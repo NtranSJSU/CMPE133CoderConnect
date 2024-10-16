@@ -179,7 +179,8 @@ body {
                 button {
                     width: 60%;
                     padding: 8px;
-                    border: none;
+                    border-radius: 20px;
+                    border-color: transparent;
                     background-color: #03dac5; 
                     color: #121212; 
                     cursor: pointer;
@@ -234,7 +235,8 @@ body {
                     button {
                         width: 60%; 
                         padding: 8px;
-                        border: none;
+                        border-radius: 20px;
+                        border-color: transparent;
                         background-color: #8093bd; 
                         color: white; 
                         font-weight: bold;
