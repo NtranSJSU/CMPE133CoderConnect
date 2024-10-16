@@ -2,33 +2,54 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Source Code Pro", sans-serif;
+    font-family: 'RobotoMono', sans-serif;
 }
 
 body {
     min-height: 100vh;
-    background: #1a1a20; 
+    background: conic-gradient(135deg, #121212, #392b41);
+}
+
+#particles-js {
+    position: fixed;  
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;     // Keep it behind other content
+}
+
+.typewriter-effect {
+    color: #00ff73; 
+    font-size: 1.5em;
+    margin-top: 0.5em;
+    white-space: nowrap;
+    overflow: hidden;
+    font-family: 'Montserrat', monospace;
+    padding: 2px;
+    z-index: 2;
+    padding-bottom: 18px;
 }
 
 .register {
-    display: flex; 
+    display: flex;
     height: 100vh;
 
     .sidebar {
-        position: fixed; 
+        position: fixed;
         top: 0;
         left: 0;
         height: 100%;
-        width: 85px; 
+        width: 85px;
         display: flex;
         overflow-x: hidden;
         flex-direction: column;
-        background: #2a3568;
+        background: #1e1e1e; 
         padding: 25px 20px;
         transition: all 0.4s ease;
 
         &:hover {
-            width: 260px; // width on hover
+            width: 260px; 
         }
 
         .sidebar-header {
@@ -43,13 +64,13 @@ body {
             }
 
             h2 {
-                color: #fffb19;
+                color: #03dac5; 
                 font-size: 1.25rem;
                 font-weight: 600;
                 white-space: nowrap;
                 margin-left: 10px;
                 overflow-x: hidden;
-                font-family: 'Source Code Pro', monospace;
+                font-family: 'RobotoMono', sans-serif;
             }
         }
 
@@ -61,13 +82,12 @@ body {
             overflow-x: hidden;
 
             h4 {
-                color: #fff;
+                color: #ffffff; 
                 font-weight: 500;
                 white-space: nowrap;
                 margin: 10px 0;
                 position: relative;
-                font-family: 'Source Code Pro', monospace;
-
+                font-family: 'RobotoMono', sans-serif;
                 span {
                     opacity: 0;
                 }
@@ -82,17 +102,17 @@ body {
                     display: flex;
                     align-items: center;
                     gap: 0 20px;
-                    color: #fff;
+                    color: #ffffff; 
                     font-weight: 500;
                     white-space: nowrap;
                     padding: 15px 10px;
                     text-decoration: none;
                     transition: 0.2s ease;
-                    font-family: 'Source Code Pro', monospace;
+                    font-family: 'RobotoMono', sans-serif;
 
                     &:hover {
-                        color: #d7dae9;
-                        background: #6e698f;
+                        color: #121212; 
+                        background: #bb86fc; 
                         border-radius: 4px;
                     }
                 }
@@ -108,47 +128,67 @@ body {
         align-items: center; 
 
         .card {
-            width: 40%; 
+            width: 60%; 
+            height: 40%; 
             display: flex; 
-            background-color: #3f509c; 
+            background-color: #1f1f1f;
             border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
             overflow: hidden;
             padding: 20px; 
 
             .left {
                 flex: 1; 
-                background-color: #ebdf36; 
-                padding: 20px; 
+                padding: 30px; 
                 display: flex;
                 flex-direction: column; 
+                position: relative;
                 align-items: center; 
-                color: rgb(51, 79, 204);
-                font-family: 'Source Code Pro', monospace;
+                color: #ffffff; 
+                font-family: 'RobotoMono', sans-serif;
+                background: url('../../assets/Digital-Rain.gif') repeat;
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(
+                        rgba(0, 0, 0, 0.747), 
+                        rgb(0, 0, 0)
+                    );
+                    z-index: 1; 
+                }
 
                 h1 {
                     font-size: 36px;
                     line-height: 1.2;
                     margin-bottom: 10px;
+                    z-index: 2;
                 }
 
                 span {
                     font-size: 12px;
-                    margin-bottom: 20px;
+                    margin-top: 30px;
+                    margin-bottom: 10px;
+                    z-index: 2;
                 }
 
                 button {
                     width: 60%;
                     padding: 8px;
-                    border: 1px solid #ccc;
-                    background-color: #ffffff;
-                    color: #666;
+                    border: none;
+                    background-color: #03dac5; 
+                    color: #121212; 
                     cursor: pointer;
                     transition: background-color 0.3s;
 
                     &:hover {
-                        background-color: #f0f0f0;
+                        background-color: #bb86fc; 
                     }
+                    z-index: 2;
                 }
             }
 
@@ -159,29 +199,38 @@ body {
                 flex-direction: column; 
                 align-items: center; 
                 gap: 20px; 
-                font-family: 'Source Code Pro', monospace;
-
+                font-family: 'RobotoMono', sans-serif;
+            
                 h1 {
-                    color: #ebdf36; 
+                    color: #bb86fc; 
                 }
-
+            
                 form {
                     display: flex;
                     flex-direction: column; 
                     width: 100%; 
                     gap: 15px; 
-
+            
                     input {
-                        border: 1px solid rgb(95, 96, 110);
+                        background: transparent; 
+                        border: 2px solid #ffffff; 
                         padding: 10px; 
-                        border-radius: 3px; 
-                        transition: border-color 0.3s;
-
+                        border-radius: 20px; 
+                        color: #ffffff; 
+                        transition: border-color 0.3s, background-color 0.3s;
+            
                         &:focus {
-                            border-color: #888; 
+                            border-color: #6200ee;; 
+                            background-color: rgba(3, 218, 197, 0.1); 
                         }
                     }
 
+                    .button-wrapper {
+                        display: flex;
+                        justify-content: center;
+                        width: 100%;
+                    }
+            
                     button {
                         width: 60%; 
                         padding: 8px;
