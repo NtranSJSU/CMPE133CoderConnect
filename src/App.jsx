@@ -1,20 +1,67 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Login from "./pages/login/Login"; 
-import Register from "./pages/register/Register"; // Adjust the path as needed
+import Login from "./pages/login/Login";
+import Register from "./pages/register/Register";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Outlet,
+} from "react-router-dom";
+import Navbar from "./components/navbar/Navbar";
+import LeftBar from "./components/leftBar/LeftBar";
+import RightBar from "./components/rightBar/RightBar";
+import Home from "./pages/home/Home";
+import Profile from "./pages/profile/Profile";
+import ChatRoom from "./pages/chatRoom/ChatRoom"; 
 
-const App = () => {
-  return (
-    <Router>
-      <div>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          {/* Add more routes as needed */}
-        </Routes>
+function App() {
+  const Layout = () => {
+    return (
+      <div style={{ backgroundColor: "#1e1e1e", minHeight: "100vh" }}>
+        <Navbar />
+        <div style={{ display: "flex" }}>
+          <LeftBar />
+          <div style={{ flex: 6 }}>
+            <Outlet />
+          </div>
+          <RightBar />
+        </div>
       </div>
-    </Router>
+    );
+  };
+
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <Layout />,
+      children: [
+        {
+          path: "/",
+          element: <Home />,
+        },
+        {
+          path: "/profile",
+          element: <Profile />,
+        },
+        {
+          path: "/chatroom", 
+          element: <ChatRoom />,
+        },
+      ],
+    },
+    {
+      path: "/login",
+      element: <Login />,
+    },
+    {
+      path: "/register",
+      element: <Register />,
+    },
+  ]);
+
+  return (
+    <div>
+      <RouterProvider router={router} />
+    </div>
   );
-};
+}
 
 export default App;
