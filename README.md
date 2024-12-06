@@ -1,7 +1,7 @@
 # CoderConnect
 
-## how to run install
-'''
+## how to install
+```
 pip install -r requirements.txt
 
 cd frontend
@@ -11,14 +11,14 @@ cd ..
 cd backend 
 yarn install
 pip install flask-cors
-'''
+```
 
 ## how to run
-'''
+```
 cd frontend 
 yarn dev
 
 cd ..
 cd backend
 python app.py
-'''
+```
