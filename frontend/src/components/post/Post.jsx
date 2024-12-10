@@ -7,14 +7,15 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Link, useNavigate } from "react-router-dom";
 import Comments from "../comments/Comments";
 import { useState, useEffect } from "react";
-import defaultAvatar from "../../assets/default-avatar.png";  // Correct path for the profile picture
-import moment from "moment";  // Import moment for date formatting
+import defaultAvatar from '../../assets/default-avatar.png'; 
+import moment from "moment";  
 
 const Post = ({ post }) => {
   const [commentOpen, setCommentOpen] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likes);  // Initialize likes state
   const [commentsCount, setCommentsCount] = useState(post.comments);  // Initialize comments count state
+  const [isImageOpen, setIsImageOpen] = useState(false);  // State to manage image modal
 
   const navigate = useNavigate(); // React Router hook to navigate programmatically
 
@@ -27,7 +28,7 @@ const Post = ({ post }) => {
       const response = await fetch(`http://localhost:5000/api/posts/${post.id}/like`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
         },
       });
 
@@ -43,6 +44,14 @@ const Post = ({ post }) => {
     }
   };
 
+  const handleImageClick = () => {
+    setIsImageOpen(true);
+  };
+
+  const handleCloseImage = () => {
+    setIsImageOpen(false);
+  };
+
   useEffect(() => {
     setLikes(post.likes);
     setCommentsCount(post.comments);
@@ -53,7 +62,7 @@ const Post = ({ post }) => {
       <div className="container">
         <div className="user">
           <div className="userInfo">
-            <img src={post.profilePic || defaultAvatar} alt="" />  {/* Use defaultAvatar if profilePic is missing */}
+            <img src={post.profile_picture || defaultAvatar} alt="User Profile" />  {/* Use defaultAvatar if profile_picture is missing */}
             <div className="details">
               <Link
                 to={`/profile/${post.user_id}`}
@@ -69,11 +78,20 @@ const Post = ({ post }) => {
         <div className="content">
           <p>{post.description}</p>
           {post.image_url ? (
-            <img src={post.image_url} alt="" />
+            <img src={post.image_url} alt="" onClick={handleImageClick} />
           ) : (
-            post.image_data && <img src={`data:image/jpeg;base64,${post.image_data}`} alt="" />
+            post.image_data && <img src={`data:image/jpeg;base64,${post.image_data}`} alt="" onClick={handleImageClick} />
           )}
         </div>
+        {isImageOpen && (
+          <div className="image-modal" onClick={handleCloseImage}>
+            <img
+              src={post.image_url || `data:image/jpeg;base64,${post.image_data}`}
+              alt=""
+              className="expanded-image"
+            />
+          </div>
+        )}
         <div className="info">
           <div className="item" onClick={handleLikeClick}>
             {liked ? <FavoriteOutlinedIcon /> : <FavoriteBorderOutlinedIcon />}

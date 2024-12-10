@@ -12,14 +12,15 @@ with app.app_context():
     db.create_all()
 
     # Insert dummy users
-    user1 = User(username='user1', email='user1@example.com', password=bcrypt.hashpw('password1'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'))
-    user2 = User(username='user2', email='user2@example.com', password=bcrypt.hashpw('password2'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'))
-    user3 = User(username='user3', email='user3@example.com', password=bcrypt.hashpw('password3'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'))
-    user4 = User(username='user4', email='user4@example.com', password=bcrypt.hashpw('password4'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'))
-    user5 = User(username='user5', email='user5@example.com', password=bcrypt.hashpw('password5'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'))
-    user6 = User(username='user6', email='user6@example.com', password=bcrypt.hashpw('password6'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'))
-    user7 = User(username='user7', email='user7@example.com', password=bcrypt.hashpw('password7'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'))
-    user8 = User(username='user8', email='user8@example.com', password=bcrypt.hashpw('password8'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'))
+    default_avatar_url = 'frontend/src/assets/default-avatar.png'
+    user1 = User(username='user1', email='user1@example.com', password=bcrypt.hashpw('password1'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'), profile_picture=default_avatar_url)
+    user2 = User(username='user2', email='user2@example.com', password=bcrypt.hashpw('password2'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'), profile_picture=default_avatar_url)
+    user3 = User(username='user3', email='user3@example.com', password=bcrypt.hashpw('password3'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'), profile_picture=default_avatar_url)
+    user4 = User(username='user4', email='user4@example.com', password=bcrypt.hashpw('password4'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'), profile_picture=default_avatar_url)
+    user5 = User(username='user5', email='user5@example.com', password=bcrypt.hashpw('password5'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'), profile_picture=default_avatar_url)
+    user6 = User(username='user6', email='user6@example.com', password=bcrypt.hashpw('password6'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'), profile_picture=default_avatar_url)
+    user7 = User(username='user7', email='user7@example.com', password=bcrypt.hashpw('password7'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'), profile_picture=default_avatar_url)
+    user8 = User(username='user8', email='user8@example.com', password=bcrypt.hashpw('password8'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'), profile_picture=default_avatar_url)
 
     db.session.add_all([user1, user2, user3, user4, user5, user6, user7, user8])
     db.session.commit()

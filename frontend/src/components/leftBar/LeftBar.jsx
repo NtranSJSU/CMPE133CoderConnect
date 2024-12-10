@@ -6,7 +6,7 @@ import Friends from '@mui/icons-material/People';
 import Groups from '@mui/icons-material/Groups';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpIcon from '@mui/icons-material/Help';
-import defaultAvatar from '../../assets/default-avatar.png';  // Ensure the correct path for the user profile image
+import defaultAvatar from '../../assets/default-avatar.png';  
 import './leftBar.scss';
 
 const LeftBar = ({ userData }) => {

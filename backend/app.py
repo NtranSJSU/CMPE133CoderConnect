@@ -194,7 +194,7 @@ def get_random_posts():
         posts = Post.query.order_by(db.func.random()).limit(5).all()
         posts_with_user_info = []
         for post in posts:
-            post_dict = post.to_dict(exclude=['image_data'])  # Exclude image_data from the response
+            post_dict = post.to_dict()  # Include image_data in the response
             user = db.session.get(User, post.user_id)  # Use Session.get()
             post_dict['username'] = user.username
             post_dict['profilePic'] = user.profile_picture  # Use the user's profile picture
@@ -303,6 +303,21 @@ def get_chatroom_users(post_id):
     except Exception as e:
         print(f"Error fetching users in chatroom: {e}")
         return jsonify({'error': 'Failed to fetch users in chatroom'}), 500
+
+@app.route('/api/profile/<int:user_id>', methods=['GET'])
+@jwt_required()
+def get_user_profile(user_id):
+    try:
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        user_data = user.to_dict()
+        user_data['profile_picture'] = user.profile_picture or 'default-avatar.png'  # Ensure correct path
+        user_data['posts'] = [post.to_dict() for post in user.posts]  # Include user's posts
+        return jsonify(user_data), 200
+    except Exception as e:
+        print(f"Error fetching user profile: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     with app.app_context():

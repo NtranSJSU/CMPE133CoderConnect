@@ -17,9 +17,14 @@ const Layout = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/user', {  // Ensure the correct backend URL
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+          throw new Error('No access token found');
+        }
+
+        const response = await fetch('http://localhost:5000/api/user', {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+            'Authorization': `Bearer ${token}`,
           },
         });
         if (!response.ok) {
@@ -91,8 +96,10 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="profile" element={<Profile />} />
           <Route path="chatroom/:postId" element={<ChatRoom />} /> {/* Dynamic route for ChatRoom */}
+        </Route>
+        <Route path="/profile/:userId" element={<Layout />}> {/* Ensure Profile route is accessible with Navbar */}
+          <Route index element={<Profile />} />
         </Route>
         <Route path="chatroom/:postId" element={<Layout />}> {/* Ensure ChatRoom route is accessible with Navbar */}
           <Route index element={<ChatRoom />} />
