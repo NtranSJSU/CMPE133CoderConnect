@@ -6,7 +6,7 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import Posts from "../../components/posts/posts";
 import banner from '../../assets/banner.jpg'; 
-import defaultPfp from '../../assets/dog.png';  // Fallback profile picture
+import defaultPfp from '../../assets/default-avatar.png';  // Fallback profile picture
 
 const Profile = () => {
   const [user, setUser] = useState(null);  // Initially no user data

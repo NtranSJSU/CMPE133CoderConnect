@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./register.scss";
-import logo from "./CoderConnectLogo3.png";
+import logo from "../../assets/CoderConnectLogo3.png";  // Ensure the correct path for the logo
 
 const Register = () => {
   const navigate = useNavigate();
@@ -9,6 +9,7 @@ const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); // New state for confirm password
   const [errorMessage, setErrorMessage] = useState(''); // For showing errors to the user
 
   const handleLoginClick = () => {
@@ -26,6 +27,11 @@ const Register = () => {
     e.preventDefault();
     setErrorMessage(''); // Clear previous error messages
 
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match');
+      return;
+    }
+
     const formData = { username, email, password };
     
     fetch('http://localhost:5000/api/register', {
@@ -35,20 +41,22 @@ const Register = () => {
       },
       body: JSON.stringify(formData),
     })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Server responded with an error: ' + response.statusText);
-        }
-        return response.json(); // Parse the JSON response
-      })
-      .then(data => {
-        console.log("Registration successful:", data);
-        navigate("/login"); // Navigate to login on success
-      })
-      .catch(error => {
-        console.error("Error registering:", error);
-        setErrorMessage('Registration failed. Please try again.');
-      });
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(data => {
+          throw new Error(data.message || 'Server responded with an error');
+        });
+      }
+      return response.json(); // Parse the JSON response
+    })
+    .then(data => {
+      console.log("Registration successful:", data);
+      navigate("/login"); // Navigate to login on success
+    })
+    .catch(error => {
+      console.error("Error registering:", error);
+      setErrorMessage('Registration failed. Please try again.');
+    });
   };
 
   useEffect(() => {
@@ -191,6 +199,13 @@ const Register = () => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <input
+                type="password"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
               {errorMessage && <div className="error-message">{errorMessage}</div>} {/* Show error message */}

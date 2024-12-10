@@ -1,128 +1,85 @@
-from app import db
+import base64
+from database import db
 from datetime import datetime
 
 # User model
 class User(db.Model):
     __tablename__ = 'users'
-    userID = db.Column(db.String(60), primary_key=True)
-    password = db.Column(db.String(60), default='password')
-    email = db.Column(db.String(100), default='email@email.com')
-    isLoggedIn = db.Column(db.Boolean, default=False)
-    profilePic = db.Column(db.LargeBinary)
-    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    profile_picture = db.Column(db.String(255), default='frontend/src/assets/default-avatar.png')  # Use forward slashes
+
     def to_dict(self):
         return {
-            'userID': self.userID,
+            'id': self.id,
+            'username': self.username,
             'email': self.email,
-            'isLoggedIn': self.isLoggedIn
+            'profile_picture': self.profile_picture
         }
 
 # Post model
 class Post(db.Model):
     __tablename__ = 'posts'
-    postID = db.Column(db.SmallInteger, primary_key=True, autoincrement=True)
-    postTitle = db.Column(db.String(200), nullable=False)
-    postDate = db.Column(db.DateTime, default=datetime.utcnow)
-    postBody = db.Column(db.Text)
-    postFile = db.Column(db.LargeBinary)
-    userID = db.Column(db.String(60), db.ForeignKey('users.userID'))
-    postPoints = db.Column(db.Integer, default=0)
-    tag = db.Column(db.String(45))
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    description = db.Column(db.String(255), nullable=False)
+    image_url = db.Column(db.String(255))
+    image_data = db.Column(db.LargeBinary(length=(2**24)-1))  # Increase the size of image_data
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    likes = db.Column(db.Integer, default=0)
 
-    user = db.relationship('User', backref=db.backref('posts', lazy=True))
+    user = db.relationship('User', backref='posts', lazy=True)
+
+    def to_dict(self, exclude=[]):
+        post_dict = {
+            'id': self.id,
+            'user_id': self.user_id,
+            'description': self.description,
+            'image_url': self.image_url,
+            'created_at': self.created_at,
+            'likes': self.likes
+        }
+        if 'image_data' not in exclude and self.image_data:
+            post_dict['image_data'] = base64.b64encode(self.image_data).decode('utf-8')
+        return post_dict
+
+# Message model
+class Message(db.Model):
+    __tablename__ = 'messages'
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    text = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    post = db.relationship('Post', backref='messages', lazy=True)
+    user = db.relationship('User', backref='messages', lazy=True)
 
     def to_dict(self):
         return {
-            'postID': self.postID,
-            'postTitle': self.postTitle,
-            'postDate': self.postDate,
-            'postBody': self.postBody,
-            'postPoints': self.postPoints,
-            'tag': self.tag
+            'id': self.id,
+            'post_id': self.post_id,
+            'user_id': self.user_id,
+            'text': self.text,
+            'created_at': self.created_at,
+            'username': self.user.username
         }
 
-# Comment model
-class Comment(db.Model):
-    __tablename__ = 'comments'
-    commentID = db.Column(db.SmallInteger, primary_key=True)
-    commentDate = db.Column(db.DateTime, default=datetime.utcnow)
-    commentBody = db.Column(db.Text)
-    commentFile = db.Column(db.LargeBinary)
-    postID = db.Column(db.SmallInteger, db.ForeignKey('posts.postID'))
-    userID = db.Column(db.String(60), db.ForeignKey('users.userID'))
-    commentpoints = db.Column(db.Integer, default=0)
+# Like model
+class Like(db.Model):
+    __tablename__ = 'likes'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
 
-    post = db.relationship('Post', backref=db.backref('comments', lazy=True))
-    user = db.relationship('User', backref=db.backref('comments', lazy=True))
+    user = db.relationship('User', backref='user_likes', lazy=True)  # Rename backref to avoid conflict
+    post = db.relationship('Post', backref='post_likes', lazy=True)  # Rename backref to avoid conflict
 
     def to_dict(self):
         return {
-            'commentID': self.commentID,
-            'commentDate': self.commentDate,
-            'commentBody': self.commentBody,
-            'commentpoints': self.commentpoints
-        }
-
-# Follow model
-class Follow(db.Model):
-    __tablename__ = 'followers'
-    followeeID = db.Column(db.String(60), primary_key=True)
-    followerID = db.Column(db.String(60), primary_key=True)
-
-    follower = db.relationship('User', foreign_keys=[followerID])
-    followee = db.relationship('User', foreign_keys=[followeeID])
-
-    def to_dict(self):
-        return {
-            'followeeID': self.followeeID,
-            'followerID': self.followerID
-        }
-
-# FollowTag model
-class FollowTag(db.Model):
-    __tablename__ = 'followtags'
-    userID = db.Column(db.String(60), primary_key=True)
-    tag = db.Column(db.String(60), primary_key=True)
-
-    def to_dict(self):
-        return {
-            'userID': self.userID,
-            'tag': self.tag
-        }
-
-# PostChatroom model
-class PostChatroom(db.Model):
-    __tablename__ = 'postchatroom'
-    chatroomID = db.Column(db.SmallInteger, primary_key=True)
-    postID = db.Column(db.SmallInteger, primary_key=True, autoincrement=True)
-    userCount = db.Column(db.Integer)
-    isOpen = db.Column(db.Boolean)
-
-    def to_dict(self):
-        return {
-            'chatroomID': self.chatroomID,
-            'postID': self.postID,
-            'userCount': self.userCount,
-            'isOpen': self.isOpen
-        }
-
-# Chatroom model
-class Chatroom(db.Model):
-    __tablename__ = 'chatroom'
-    replyID = db.Column(db.SmallInteger, primary_key=True, autoincrement=True)
-    chatroomID = db.Column(db.SmallInteger, primary_key=True)
-    postID = db.Column(db.SmallInteger, primary_key=True)
-    userID = db.Column(db.String(60), primary_key=True)
-    replyBody = db.Column(db.Text)
-    replyDate = db.Column(db.DateTime, default=datetime.utcnow)
-    replyFile = db.Column(db.LargeBinary)
-
-    def to_dict(self):
-        return {
-            'replyID': self.replyID,
-            'chatroomID': self.chatroomID,
-            'postID': self.postID,
-            'userID': self.userID,
-            'replyBody': self.replyBody,
-            'replyDate': self.replyDate
+            'id': self.id,
+            'user_id': self.user_id,
+            'post_id': self.post_id
         }

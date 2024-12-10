@@ -1,14 +1,15 @@
 import mysql.connector
 from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from flask_socketio import SocketIO, send, join_room, leave_room
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import timedelta
 import os
+import bcrypt
 from flask_cors import CORS
-
+from database import db  # Import db from database.py
+from models import User, Post, Message, Like  # Import models from models.py
 
 # Initialize app, db, jwt, and socket
 app = Flask(__name__)
@@ -17,10 +18,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = 'supersecretkey'  # Secret key for JWT
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)  # Token expires in 1 hour
 app.config['UPLOAD_FOLDER'] = 'uploads/'  # Folder to save uploaded images
-db = SQLAlchemy(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+db.init_app(app)  # Initialize db with app
 jwt = JWTManager(app)
 socketio = SocketIO(app, cors_allowed_origins="*")  # Enable CORS for SocketIO
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow requests from any origin
+
+password = 'user_password'
+salt = bcrypt.gensalt()  # Generate salt
+hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
 # Function to create the database if it doesn't exist
 def create_database_if_not_exists():
@@ -32,10 +38,12 @@ def create_database_if_not_exists():
     cursor.execute("SHOW DATABASES LIKE 'coderconnect'")
     result = cursor.fetchone()
     
-    # If the database doesn't exist, create it
     if not result:
+        # Create the database if it does not exist
         cursor.execute("CREATE DATABASE coderconnect")
         print("Database 'coderconnect' created.")
+    else:
+        print("Database 'coderconnect' already exists.")
     
     cursor.close()
     conn.close()
@@ -43,110 +51,79 @@ def create_database_if_not_exists():
 # Call the function to create the database
 create_database_if_not_exists()
 
-# Models
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(255), nullable=False)
-
-    def __repr__(self):
-        return f"<User {self.username}>"
-
-    def to_dict(self):
-        return {'id': self.id, 'username': self.username, 'email': self.email}
-
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    description = db.Column(db.String(255), nullable=False)
-    image_url = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=db.func.now())
-
-    user = db.relationship('User', backref='posts', lazy=True)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'description': self.description,
-            'image_url': self.image_url,
-            'created_at': self.created_at,
-        }
-
-class Message(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    text = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.now())
-
-    post = db.relationship('Post', backref='messages', lazy=True)
-    user = db.relationship('User', backref='messages', lazy=True)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'post_id': self.post_id,
-            'user_id': self.user_id,
-            'text': self.text,
-            'created_at': self.created_at,
-            'username': self.user.username,
-        }
-
 # Routes
 @app.route('/api/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    print(f"Received data: {data}")  # Log incoming data to see what is coming
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
 
-    existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
-    if existing_user:
-        return jsonify({'message': 'User already exists!'}), 400
+        if not username or not email or not password:
+            return jsonify({'message': 'Missing required fields'}), 400
 
-    hashed_password = generate_password_hash(password)
-    new_user = User(username=username, email=email, password=hashed_password)
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({'message': 'User registered successfully!'}), 201
+        # Check if user already exists
+        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+        if existing_user:
+            return jsonify({'message': 'User already exists!'}), 400
+
+        # Hash the password using bcrypt
+        salt = bcrypt.gensalt()  # Generate salt
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')  # Hash password
+
+        # Create and add the new user to the database
+        new_user = User(username=username, email=email, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return jsonify({'message': 'User registered successfully!'}), 201
+    except Exception as e:
+        print(f"Error during registration: {e}")
+        return jsonify({'message': 'Internal server error'}), 500
 
 
+# Login Route
 @app.route('/api/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    try:
+        data = request.get_json()
+        email = data.get('userID')
+        password = data.get('password')
 
-    user = User.query.filter_by(username=username).first()
-    if user and check_password_hash(user.password, password):
-        access_token = create_access_token(identity=user.id)
-        return jsonify(access_token=access_token), 200
-    return jsonify({"message": "Invalid credentials"}), 401
+        # Find the user by email
+        user = User.query.filter_by(email=email).first()
+
+        if user and bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+            # If the password matches, return a success response with access token
+            access_token = create_access_token(identity=str(user.id))  # Ensure identity is a string
+            return jsonify({'message': 'Login successful!', 'access_token': access_token}), 200
+        else:
+            return jsonify({'error': 'Invalid credentials'}), 401
+    except Exception as e:
+        print(f"Error during login: {e}")
+        return jsonify({'message': 'Internal server error'}), 500
 
 @app.route('/api/posts', methods=['POST'])
 @jwt_required()
 def create_post():
-    user_id = get_jwt_identity()
-    title = request.form.get('title')
-    content = request.form.get('content')
-    image = request.files.get('image')  # Get the image from form-data
+    try:
+        user_id = get_jwt_identity()
+        description = request.form.get('description')
+        image = request.files.get('image')  # Get the image from form-data
 
-    image_url = None
-    if image:
-        filename = secure_filename(image.filename)
-        image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        image.save(image_path)
-        image_url = image_path  # Store the image URL/path for the post
+        image_data = None
+        if image:
+            image_data = image.read()  # Read the image data
 
-    # Create a new post
-    new_post = Post(user_id=user_id, description=content, image_url=image_url)
-    db.session.add(new_post)
-    db.session.commit()
+        new_post = Post(user_id=user_id, description=description, image_data=image_data)
+        db.session.add(new_post)
+        db.session.commit()
 
-    return jsonify(new_post.to_dict()), 201
+        return jsonify(new_post.to_dict(exclude=['image_data'])), 201  # Exclude image_data from the response
+    except Exception as e:
+        print(f"Error creating post: {e}")
+        return jsonify({'message': 'Internal server error'}), 500
 
 @app.route('/api/posts', methods=['GET'])
 @jwt_required()
@@ -189,48 +166,69 @@ def handle_send_message(data):
         'user_id': user_id,
         'message': message_text,
         'username': User.query.get(user_id).username
-    }, room=str(post_id))
-
-@app.route('/api/chatroom/<int:post_id>', methods=['GET'])
-def get_chatroom_messages(post_id):
-    messages = Message.query.filter_by(post_id=post_id).all()
-    return jsonify([message.to_dict() for message in messages])
+    }, room=f'chatroom_{post_id}')
 
 @socketio.on('join_chatroom')
 def on_join(data):
     post_id = data['post_id']
-    join_room(str(post_id))
+    join_room(f'chatroom_{post_id}')
 
 @socketio.on('leave_chatroom')
 def on_leave(data):
     post_id = data['post_id']
-    leave_room(str(post_id))
+    leave_room(f'chatroom_{post_id}')
+
+@app.route('/api/chatroom/<int:post_id>', methods=['GET'])
+def get_chatroom_messages(post_id):
+    try:
+        messages = Message.query.filter_by(post_id=post_id).all()
+        return jsonify([message.to_dict() for message in messages])
+    except Exception as e:
+        print(f"Error fetching chatroom messages: {e}")
+        return jsonify({'error': 'Failed to fetch chatroom messages'}), 500
 
 @app.route('/api/random-posts', methods=['GET'])
 def get_random_posts():
-    # Fetch 5 random posts
-    posts = Post.query.order_by(db.func.random()).limit(5).all()
-    return jsonify([post.to_dict() for post in posts])
+    try:
+        # Fetch 5 random posts
+        posts = Post.query.order_by(db.func.random()).limit(5).all()
+        posts_with_user_info = []
+        for post in posts:
+            post_dict = post.to_dict(exclude=['image_data'])  # Exclude image_data from the response
+            user = db.session.get(User, post.user_id)  # Use Session.get()
+            post_dict['username'] = user.username
+            post_dict['profilePic'] = user.profile_picture  # Use the user's profile picture
+            post_dict['comments'] = Message.query.filter_by(post_id=post.id).count()  # Count comments
+            posts_with_user_info.append(post_dict)
+        return jsonify(posts_with_user_info)
+    except Exception as e:
+        print(f"Error fetching random posts: {e}")
+        return jsonify({'error': 'Failed to fetch random posts'}), 500
 
 @app.route('/api/posts/<int:post_id>/comments', methods=['GET'])
 def get_comments(post_id):
-    # Fetch comments related to the given post
-    post = Post.query.get_or_404(post_id)
-    comments = Message.query.filter_by(post_id=post.id).all()
-    
-    # Convert comments to a list of dictionaries
-    comments_list = [
-        {
-            'id': comment.id,
-            'desc': comment.text,
-            'name': comment.user.username,
-            'profilePicture': comment.user.profile_picture,  # Assuming you have a profile_picture field
-            'userId': comment.user.id,
-        }
-        for comment in comments
-    ]
-    
-    return jsonify(comments_list)
+    try:
+        # Fetch comments related to the given post
+        post = Post.query.get_or_404(post_id)
+        comments = Message.query.filter_by(post_id=post.id).all()
+        
+        # Convert comments to a list of dictionaries
+        comments_list = [
+            {
+                'id': comment.id,
+                'desc': comment.text,
+                'name': comment.user.username,
+                'profilePicture': comment.user.profile_picture,  # Use the user's profile picture
+                'userId': comment.user.id,
+                'created_at': comment.created_at,  # Include created_at field
+            }
+            for comment in comments
+        ]
+        
+        return jsonify(comments_list)
+    except Exception as e:
+        print(f"Error fetching comments: {e}")
+        return jsonify({'error': 'Failed to fetch comments'}), 500
 
 @app.route('/api/posts/<int:post_id>/comments', methods=['POST'])
 @jwt_required()
@@ -247,9 +245,64 @@ def create_comment(post_id):
         'id': new_comment.id,
         'desc': new_comment.text,
         'name': new_comment.user.username,
-        'profilePicture': new_comment.user.profile_picture,  # Assuming profile picture field
-        'userId': new_comment.user.id
+        'profilePicture': new_comment.user.profile_picture,  # Use the user's profile picture
+        'userId': new_comment.user.id,
+        'created_at': new_comment.created_at,  # Include created_at field
     }), 201
+
+@app.route('/api/user', methods=['GET'])
+@jwt_required()
+def get_user():
+    try:
+        user_id = get_jwt_identity()
+        print(f"User ID from JWT: {user_id}")  # Log the user ID
+        user = db.session.get(User, user_id)  # Use Session.get()
+        if not user:
+            print("User not found")  # Log if user is not found
+            return jsonify({'error': 'User not found'}), 404
+        user_data = user.to_dict()
+        print(f"User data: {user_data}")  # Log the user data
+        return jsonify(user_data), 200
+    except Exception as e:
+        print(f"Error fetching user: {e}")  # Log the error
+        return jsonify({'error': str(e)}), 422
+
+@app.route('/api/posts/<int:post_id>/like', methods=['POST'])
+@jwt_required()
+def like_post(post_id):
+    try:
+        user_id = get_jwt_identity()
+        post = Post.query.get_or_404(post_id)
+
+        # Check if the user has already liked the post
+        like = Like.query.filter_by(user_id=user_id, post_id=post_id).first()
+        if like:
+            # If already liked, remove the like
+            db.session.delete(like)
+            post.likes -= 1
+            liked = False
+        else:
+            # If not liked, add a new like
+            new_like = Like(user_id=user_id, post_id=post_id)
+            db.session.add(new_like)
+            post.likes += 1
+            liked = True
+
+        db.session.commit()
+        return jsonify({'liked': liked, 'likes': post.likes}), 200
+    except Exception as e:
+        print(f"Error liking post: {e}")
+        return jsonify({'error': 'Failed to like post'}), 500
+
+@app.route('/api/chatroom/<int:post_id>/users', methods=['GET'])
+def get_chatroom_users(post_id):
+    try:
+        # Fetch users in the chatroom
+        users = db.session.query(User).join(Message).filter(Message.post_id == post_id).distinct().all()
+        return jsonify([user.to_dict() for user in users])
+    except Exception as e:
+        print(f"Error fetching users in chatroom: {e}")
+        return jsonify({'error': 'Failed to fetch users in chatroom'}), 500
 
 if __name__ == '__main__':
     with app.app_context():

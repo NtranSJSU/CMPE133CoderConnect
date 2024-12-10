@@ -1,23 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios'; // Import axios
-import "./rightBar.scss";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import './rightBar.scss';
 import catpfp from '../../assets/catpfp.png'; 
 import chaticon from '../../assets/chaticon.png'; 
 import { Link } from 'react-router-dom'; 
 
 const RightBar = () => {
   const [posts, setPosts] = useState([]);
+  const [error, setError] = useState('');
 
-  // Fetch random posts from the API
   useEffect(() => {
-    axios.get('/api/random-posts')  // Make sure this matches your backend route
-      .then(response => {
-        setPosts(response.data);  // Set the random posts from the response
-      })
-      .catch(error => {
-        console.error("Error fetching posts:", error);
-      });
+    const fetchPosts = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/random-posts');
+        setPosts(response.data);
+      } catch (error) {
+        setError('Error fetching posts: ' + error.message);
+        console.error('Error fetching posts:', error);
+      }
+    };
+
+    fetchPosts();
   }, []);
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <div className="rightBar">

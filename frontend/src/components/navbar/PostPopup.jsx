@@ -5,6 +5,7 @@ const PostPopup = ({ onClose }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [image, setImage] = useState(null);
+    const [error, setError] = useState('');
 
     const handleImageChange = (event) => {
         const file = event.target.files[0];
@@ -21,30 +22,28 @@ const PostPopup = ({ onClose }) => {
         // Create a FormData object to send data, including image
         const formData = new FormData();
         formData.append('title', title);
-        formData.append('content', content);
+        formData.append('description', content);  // Use 'description' instead of 'content'
         if (image) formData.append('image', image);
 
         try {
-            const response = await fetch('/api/posts', {
+            const response = await fetch('http://localhost:5000/api/posts', {  // Correct the port to 5000
                 method: 'POST',
                 body: formData,
                 headers: {
-                    // Include any necessary headers like authentication token if needed
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                 },
             });
 
             if (response.ok) {
-                alert('Post created successfully!');
-                setTitle('');
-                setContent('');
-                setImage(null);
-                onClose(); // Close the popup
+                const data = await response.json();
+                onClose();
+                window.location.reload();  // Reload the page to show the new post
             } else {
-                alert('Failed to create post. Please try again.');
+                const errorData = await response.json();
+                setError('Failed to create post: ' + errorData.message);
             }
         } catch (error) {
-            console.error('Error creating post:', error);
-            alert('An error occurred. Please try again.');
+            setError('Error creating post: ' + error.message);
         }
     };
 
@@ -79,6 +78,7 @@ const PostPopup = ({ onClose }) => {
                     {image && <p>Image selected: {image.name}</p>}
                     <button type="submit">Post</button>
                 </form>
+                {error && <p className="error">{error}</p>}
             </div>
         </div>
     );

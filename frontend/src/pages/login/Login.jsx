@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; 
-import "./login.scss"; 
-import logo from "./CoderConnectLogo3.png"; 
+import { useNavigate } from "react-router-dom";
+import "./login.scss";
+import logo from "../../assets/CoderConnectLogo3.png";  // Ensure the correct path for the logo
 import axios from 'axios'; // For making HTTP requests
 
 const Login = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [currentText, setCurrentText] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,14 +13,14 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRegisterClick = () => {
-    navigate("/register"); 
+    navigate("/register");
   };
 
   const typewriterTexts = [
     "Welcome back!",
     "Login to your account.",
     "Let’s get started!",
-  ]; 
+  ];
 
   // Handle form submission
   const handleLoginSubmit = async (e) => {
@@ -29,7 +29,7 @@ const Login = () => {
     setErrorMessage(''); // Reset error message
 
     try {
-      const response = await axios.post('/api/login', {
+      const response = await axios.post('http://localhost:5000/api/login', {
         userID: email,  // Assuming the email is used as the userID
         password: password
       });
@@ -38,11 +38,11 @@ const Login = () => {
       localStorage.setItem('access_token', response.data.access_token); // Store token in localStorage
 
       // Redirect user after successful login
-      navigate("/dashboard"); // Change this to wherever you want to redirect the user
+      navigate("/home"); // Change this to a valid route
 
     } catch (error) {
       setIsLoading(false);
-      setErrorMessage("Invalid credentials. Please try again.");
+      setErrorMessage(error.response?.data?.error || "Invalid credentials. Please try again.");
     }
   };
 
