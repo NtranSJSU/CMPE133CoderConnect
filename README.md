@@ -2,22 +2,14 @@
 
 ## how to install
 ```
-pip install -r requirements.txt
-
 cd frontend
 yarn install
 
 cd .. 
 cd backend 
+pip install -r requirements.txt
 yarn install
 pip install flask-cors
-```
-
-## how to run
-```
-//make sure you are in backend folder
-cd backend
-python insert_dummy_data.py
 ```
 
 ## Starting mySQL
@@ -34,4 +26,11 @@ yarn dev
 cd .. 
 cd backend
 python app.py
+```
+
+## Installing Dummy Data
+```
+//make sure you are in backend folder
+cd backend
+python insert_dummy_data.py
 ```
