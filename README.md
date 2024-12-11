@@ -1,5 +1,16 @@
 # CoderConnect
 
+## Prerequisites
+```
+Make sure you have the following installed on your machine
+- [MySQL](https://www.mysql.com/)
+- [Python](https://www.python.org/) 
+- [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#windows-stable)
+
+
+make sure MySQL password is :root
+```
+
 ## how to install
 ```
 cd frontend
@@ -9,7 +20,6 @@ cd ..
 cd backend 
 pip install -r requirements.txt
 yarn install
-pip install flask-cors
 ```
 
 ## Starting mySQL
@@ -34,3 +44,4 @@ python app.py
 cd backend
 python insert_dummy_data.py
 ```
+

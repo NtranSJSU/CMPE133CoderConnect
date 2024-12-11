@@ -319,6 +319,36 @@ def get_user_profile(user_id):
         print(f"Error fetching user profile: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/search', methods=['GET'])
+def search():
+    query = request.args.get('query', '')
+    if not query:
+        return jsonify([])
+
+    results = Post.query.filter(Post.description.ilike(f'%{query}%')).all()
+    return jsonify([post.to_dict() for post in results])
+
+@app.route('/api/posts/<int:post_id>', methods=['DELETE'])
+@jwt_required()
+def delete_post(post_id):
+    try:
+        user_id = int(get_jwt_identity()) 
+        post = Post.query.get_or_404(post_id)
+
+        print(f"User ID from JWT: {user_id} (type: {type(user_id)})")
+        print(f"Post user ID: {post.user_id} (type: {type(post.user_id)})")
+
+        if post.user_id != user_id:
+            print("Unauthorized attempt to delete post")  # Log unauthorized attempt
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        db.session.delete(post)
+        db.session.commit()
+        return jsonify({'message': 'Post deleted successfully'}), 200
+    except Exception as e:
+        print(f"Error deleting post: {e}")
+        return jsonify({'error': 'Failed to delete post'}), 500
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create all tables in the database

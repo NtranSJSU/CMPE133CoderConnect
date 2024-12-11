@@ -5,9 +5,10 @@ import Login from "./pages/login/Login";
 import Home from "./pages/home/Home";
 import Profile from "./pages/profile/Profile";
 import ChatRoom from "./pages/chatRoom/ChatRoom";
-import Navbar from "./components/navbar/Navbar"; // Ensure the import path matches the actual file name and path
+import Navbar from "./components/navbar/Navbar"; 
 import LeftBar from "./components/leftBar/LeftBar";
 import RightBar from "./components/rightBar/RightBar";
+import SearchResults from "./pages/searchResults/SearchResults"; // Import SearchResults component
 
 const Layout = () => {
   const [userData, setUserData] = useState(null);
@@ -35,6 +36,7 @@ const Layout = () => {
           const data = await response.json();
           console.log('User data fetched successfully:', data);  // Log the fetched user data
           setUserData(data);
+          localStorage.setItem('user_id', data.id); // Store user ID in localStorage
         } else {
           const text = await response.text();
           console.error('Received non-JSON response:', text);  // Log the non-JSON response
@@ -103,6 +105,9 @@ const App = () => {
         </Route>
         <Route path="chatroom/:postId" element={<Layout />}> {/* Ensure ChatRoom route is accessible with Navbar */}
           <Route index element={<ChatRoom />} />
+        </Route>
+        <Route path="/search" element={<Layout />}> {/* Add search route */}
+          <Route index element={<SearchResults />} />
         </Route>
       </Routes>
     </Router>

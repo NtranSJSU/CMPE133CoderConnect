@@ -9,6 +9,7 @@ import Comments from "../comments/Comments";
 import { useState, useEffect } from "react";
 import defaultAvatar from '../../assets/default-avatar.png'; 
 import moment from "moment";  
+import { Menu, MenuItem } from '@mui/material'; // Import Menu and MenuItem components
 
 const Post = ({ post }) => {
   const [commentOpen, setCommentOpen] = useState(false);
@@ -16,6 +17,8 @@ const Post = ({ post }) => {
   const [likes, setLikes] = useState(post.likes);  // Initialize likes state
   const [commentsCount, setCommentsCount] = useState(post.comments);  // Initialize comments count state
   const [isImageOpen, setIsImageOpen] = useState(false);  // State to manage image modal
+  const [anchorEl, setAnchorEl] = useState(null); // State to manage menu anchor element
+  const open = Boolean(anchorEl); // Boolean to check if menu is open
 
   const navigate = useNavigate(); // React Router hook to navigate programmatically
 
@@ -28,7 +31,7 @@ const Post = ({ post }) => {
       const response = await fetch(`http://localhost:5000/api/posts/${post.id}/like`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         },
       });
 
@@ -52,6 +55,43 @@ const Post = ({ post }) => {
     setIsImageOpen(false);
   };
 
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget); // Set anchor element to the clicked element
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null); // Close the menu
+  };
+
+  const handleDeletePost = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/posts/${post.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+
+      if (response.ok) {
+        // Handle post deletion (e.g., refresh posts or remove from UI)
+        console.log('Post deleted successfully');
+        window.location.reload(); // Refresh the page after deletion
+      } else {
+        console.error('Failed to delete the post');
+      }
+    } catch (error) {
+      console.error('Error deleting the post:', error);
+    } finally {
+      handleMenuClose(); // Close the menu after action
+    }
+  };
+
+  const handleFlagPost = () => {
+    // Handle flagging the post (currently does nothing)
+    console.log('Post flagged');
+    handleMenuClose(); // Close the menu after action
+  };
+
   useEffect(() => {
     setLikes(post.likes);
     setCommentsCount(post.comments);
@@ -73,7 +113,18 @@ const Post = ({ post }) => {
               <span className="date">{moment(post.created_at).fromNow()}</span>  {/* Display accurate time */}
             </div>
           </div>
-          <MoreHorizIcon />
+          <MoreHorizIcon onClick={handleMenuClick} /> {/* Add onClick to open menu */}
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleMenuClose}
+          >
+            {post.user_id === parseInt(localStorage.getItem('user_id')) ? ( // Ensure correct comparison
+              <MenuItem onClick={handleDeletePost}>Delete</MenuItem>
+            ) : (
+              <MenuItem onClick={handleFlagPost}>Flag</MenuItem>
+            )}
+          </Menu>
         </div>
         <div className="content">
           <p>{post.description}</p>
