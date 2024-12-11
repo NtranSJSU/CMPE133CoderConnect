@@ -1,0 +1,10 @@
+flask
+flask_sqlalchemy
+flask_jwt_extended
+flask_socketio
+pymysql
+flask-cors
+mysql-connector
+bcrypt
+cryptography
+mysql-connector-python
