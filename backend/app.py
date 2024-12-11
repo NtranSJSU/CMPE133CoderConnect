@@ -11,6 +11,10 @@ from flask_cors import CORS
 from database import db  # Import db from database.py
 from models import User, Post, Message, Like  # Import models from models.py
 
+# Run setup scripts
+os.system('python setup_mysql.py')
+os.system('python setup_env.py')
+
 # Initialize app, db, jwt, and socket
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost/coderconnect'

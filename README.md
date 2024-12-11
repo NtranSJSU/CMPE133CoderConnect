@@ -1,17 +1,62 @@
 # CoderConnect
 
+
+# CoderConnect
+
 ## Prerequisites
-```
-Make sure you have the following installed on your machine
+
+Make sure you have the following installed on your machine:
 - [MySQL](https://www.mysql.com/)
-- [Python](https://www.python.org/) 
+- [Python](https://www.python.org/)
 - [Yarn](https://classic.yarnpkg.com/lang/en/docs/install/#windows-stable)
 
+Make sure MySQL password is set to `root`.
 
-make sure MySQL password is :root
+## Installation
+
+1. **Clone the repository:**
+
+    ```bash
+    git clone https://github.com/yourusername/CMPE133CoderConnect.git
+    cd CMPE133CoderConnect
+    ```
+
+2. **Set up the frontend:**
+
+    ```bash
+    cd frontend
+    yarn install
+    ```
+
+3. **Set up the backend:**
+
+    ```bash
+    cd ../backend
+    pip install -r requirements.txt
+    yarn install
+    ```
+
+4. **Run MySQL setup script:**
+
+    ```bash
+    python setup_mysql.py
+    ```
+
+5. **Run environment setup script:**
+
+    ```bash
+    python setup_env.py
+    ```
+
+## Starting MySQL
+
+Run Command Prompt as admin and start MySQL:
+
+```bash
+net start MySQL80
 ```
 
-## how to install
+## Application Setup
 ```
 cd frontend
 yarn install
