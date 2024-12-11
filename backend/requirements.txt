@@ -5,5 +5,6 @@ flask_socketio
 pymysql
 flask-cors
 mysql-connector
-bycrypt
+bcrypt
 cryptography
+mysql-connector-python
