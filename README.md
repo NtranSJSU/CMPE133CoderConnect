@@ -17,7 +17,7 @@ Make sure MySQL password is set to `root`.
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/yourusername/CMPE133CoderConnect.git
+    git clone https://github.com/NtranSJSU/CMPE133CoderConnect.git
     cd CMPE133CoderConnect
     ```
 
